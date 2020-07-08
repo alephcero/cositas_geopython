@@ -2,6 +2,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 from shapely.geometry import Polygon, MultiPolygon, Point, LineString
+from h3 import h3
 
 
 def clean_empty(gdf):
@@ -11,6 +12,16 @@ def clean_empty(gdf):
     post = len(gdf)
     print(prior - post, 'geoms emtpy or nan removed')
     return gdf
+
+def llenar_poly_con_h3(gdf):
+    #gdf geometry tiene que ser polygon
+    gdf_geojson = gpd.GeoSeries([gdf.geometry.iloc[0]]).__geo_interface__
+    gdf_geojson = gdf_geojson['features'][0]['geometry']
+
+    indices_rio = h3.polyfill(
+        geo_json=gdf_geojson,
+        res=10, geo_json_conformant=True)
+    return indices_rio
 
 
 def clean_duplicates(gdf):
