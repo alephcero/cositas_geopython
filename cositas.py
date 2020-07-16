@@ -4,6 +4,10 @@ import numpy as np
 from shapely.geometry import Polygon, MultiPolygon, Point, LineString
 from h3 import h3
 
+def geopandas_a_geojson(gdf):
+    geo = gpd.GeoSeries([file.geometry.iloc[0]]).geo_interface
+    geo_geojson = geo_geojson['features'][0]['geometry']
+    return geo_geojson
 
 def clean_empty(gdf):
     gdf = gdf.loc[~gdf.geometry.is_empty, :]
