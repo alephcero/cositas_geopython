@@ -90,3 +90,30 @@ def multy_to_poly(g):
             return g
     else:
         return g
+
+def puntos_en_recorrido(recorrido, puntosCorte_n = 10):
+    '''
+    Esta funcion toma un recorrido (reco.geometry.iloc[0]) y
+    una cantidad de puntos en % del recorrido
+    y devuelve esos puntos sobre el recorrido
+    '''
+
+    puntosCorte = np.linspace(0,1,puntosCorte_n)
+    crs = {'init': 'epsg:4326'}
+    vertices = pd.DataFrame({'vertice':range(len(recorrido.coords)),
+    'geometry':[Point(recorrido.coords[i]) for i in range(len(recorrido.coords))]})
+
+    vertices = gpd.GeoDataFrame(vertices, crs=crs, geometry=vertices.geometry)
+
+    vertices['LRSp'] = [recorrido.project(vertices.geometry.loc[i],normalized = True) for i in vertices.index]
+
+    #detecto los vertices mas cercanos a mis puntos de corte
+    deciles_recorrido = [vertices.iloc[(vertices.LRSp-i).abs().argsort()[:1],1].item() for i in puntosCorte]
+    vertices = vertices.loc[deciles_recorrido,['vertice','geometry']]
+    vertices.loc[:,'vertice'] = puntosCorte
+    return vertices
+
+def vertices_cada_Xmetros(geom,metros = 20):
+    n_puntos = int((geom.length/metros)+1)
+    percentiles = np.linspace(0,geom.length,n_puntos)
+    return LineString([geom.interpolate(percentil,normalized=False) for percentil in percentiles])
